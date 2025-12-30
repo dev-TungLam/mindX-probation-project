@@ -12,13 +12,17 @@ export class AuthRouter {
   }
 
   private initializeRoutes() {
-    this.router.post(
-      "/register",
-      this.authController.register.bind(this.authController)
-    );
-    this.router.post(
+    this.router.get(
       "/login",
       this.authController.login.bind(this.authController)
     );
+    this.router.get(
+      "/callback",
+      this.authController.callback.bind(this.authController)
+    );
+    this.router.post(
+      "/register",
+      this.authController.register.bind(this.authController)
+    ); // Should return 405 or redirect
   }
 }

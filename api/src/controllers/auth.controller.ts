@@ -1,61 +1,71 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 
-const USERS: any[] = []; // In-memory user store for Week 1 demo
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-week-1";
+const CLIENT_ID = "mindx-onboarding";
+const CLIENT_SECRET =
+  "cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU="; // Ideally from env
+const REDIRECT_URI =
+  "https://mindx-devtunglam.52.234.236.158.nip.io/api/auth/callback";
+const AUTH_ENDPOINT = "https://id-dev.mindx.edu.vn/auth";
+const TOKEN_ENDPOINT = "https://id-dev.mindx.edu.vn/token";
 
 export class AuthController {
-  public async register(req: Request, res: Response) {
+  // Initiates the login flow
+  public login(req: Request, res: Response) {
+    const params = new URLSearchParams({
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: "code",
+      scope: "openid email profile",
+    });
+
+    res.redirect(`${AUTH_ENDPOINT}?${params.toString()}`);
+  }
+
+  // Handles the callback from IDP
+  public async callback(req: Request, res: Response) {
+    const { code } = req.query;
+
+    if (!code) {
+      return res.status(400).json({ message: "Authorization code missing" });
+    }
+
     try {
-      const { username, password } = req.body;
+      // Exchange code for tokens
+      const tokenResponse = await axios.post(
+        TOKEN_ENDPOINT,
+        new URLSearchParams({
+          grant_type: "authorization_code",
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          code: code as string,
+          redirect_uri: REDIRECT_URI,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
 
-      if (!username || !password) {
-        return res
-          .status(400)
-          .json({ message: "Username and password required" });
-      }
+      const { id_token, access_token } = tokenResponse.data;
 
-      const existingUser = USERS.find((u) => u.username === username);
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
-      }
+      // Decode token to get user info (or use userinfo endpoint)
+      const decoded: any = jwt.decode(id_token);
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = { id: Date.now(), username, password: hashedPassword };
-      USERS.push(newUser);
-
-      console.log(`User registered: ${username}`);
-      return res.status(201).json({ message: "User registered successfully" });
-    } catch (error) {
-      console.error("Register error:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      // Redirect back to frontend with token
+      // In production, set a detailed cookie, but for now passing via query param for simplicity
+      res.redirect(
+        `https://mindx-devtunglam.52.234.236.158.nip.io/login/callback?token=${id_token}&username=${decoded.email}`
+      );
+    } catch (error: any) {
+      console.error("Callback error:", error.response?.data || error.message);
+      res.status(500).json({ message: "Authentication failed" });
     }
   }
 
-  public async login(req: Request, res: Response) {
-    try {
-      const { username, password } = req.body;
-
-      const user = USERS.find((u) => u.username === username);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      const token = jwt.sign(
-        { id: user.id, username: user.username },
-        JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-      return res.json({ token, username });
-    } catch (error) {
-      console.error("Login error:", error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
+  public register(req: Request, res: Response) {
+    res.status(405).json({ message: "Register via MindX ID" });
   }
 }

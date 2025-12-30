@@ -7,7 +7,7 @@ import {
   Link,
 } from "react-router-dom";
 import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
+import { LoginCallback } from "./pages/LoginCallback";
 import "./App.css";
 
 const Home: React.FC = () => {
@@ -71,18 +71,15 @@ function App() {
             Home
           </Link>
           {!localStorage.getItem("token") && (
-            <>
-              <Link to="/login" style={{ marginRight: "1rem" }}>
-                Login
-              </Link>
-              <Link to="/register">Register</Link>
-            </>
+            <Link to="/login" style={{ marginRight: "1rem" }}>
+              Login
+            </Link>
           )}
         </nav>
 
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login/callback" element={<LoginCallback />} />
           <Route
             path="/"
             element={
