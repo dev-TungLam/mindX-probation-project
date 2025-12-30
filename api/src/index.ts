@@ -1,8 +1,8 @@
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
-import { MainRouter } from './routes';
+import express, { Application } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import dotenv from "dotenv";
+import { MainRouter } from "./routes";
 
 dotenv.config();
 
@@ -12,7 +12,7 @@ class App {
 
   constructor() {
     this.app = express();
-    this.port = parseInt(process.env.PORT || '3000', 10);
+    this.port = parseInt(process.env.PORT || "3000", 10);
     this.initializeMiddlewares();
     this.initializeRoutes();
   }
@@ -24,11 +24,12 @@ class App {
   }
 
   private initializeRoutes() {
-    this.app.use('/api', new MainRouter().router);
-    
+    this.app.use("/api", new MainRouter().router);
+    this.app.use("/", new MainRouter().router);
+
     // Root endpoint for simple verification
-    this.app.get('/', (req, res) => {
-      res.send('Hello World from Azure API');
+    this.app.get("/", (req, res) => {
+      res.send("Hello World from Azure API");
     });
   }
 

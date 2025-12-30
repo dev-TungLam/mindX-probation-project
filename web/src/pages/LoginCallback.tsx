@@ -6,8 +6,14 @@ export const LoginCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    const username = searchParams.get("username");
+    const token = new URLSearchParams(window.location.search).get("token");
+    const username = new URLSearchParams(window.location.search).get(
+      "username"
+    );
+
+    console.log("LoginCallback reached.");
+    console.log("Token:", token ? "Found" : "Missing");
+    console.log("Username:", username);
 
     if (token) {
       localStorage.setItem("token", token);

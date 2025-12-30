@@ -5,8 +5,7 @@ import jwt from "jsonwebtoken";
 const CLIENT_ID = "mindx-onboarding";
 const CLIENT_SECRET =
   "cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU="; // Ideally from env
-const REDIRECT_URI =
-  "https://mindx-devtunglam.52.234.236.158.nip.io/api/auth/callback";
+const REDIRECT_URI = "http://localhost:3000/auth/callback";
 const AUTH_ENDPOINT = "https://id-dev.mindx.edu.vn/auth";
 const TOKEN_ENDPOINT = "https://id-dev.mindx.edu.vn/token";
 
@@ -25,6 +24,7 @@ export class AuthController {
 
   // Handles the callback from IDP
   public async callback(req: Request, res: Response) {
+    console.log("Received OIDC Callback. Query Params:", req.query);
     const { code } = req.query;
 
     if (!code) {
@@ -52,13 +52,16 @@ export class AuthController {
       const { id_token, access_token } = tokenResponse.data;
 
       // Decode token to get user info (or use userinfo endpoint)
+      console.log("Token exchange successful. ID Token received.");
       const decoded: any = jwt.decode(id_token);
+      console.log("Decoded User:", decoded?.email);
 
       // Redirect back to frontend with token
       // In production, set a detailed cookie, but for now passing via query param for simplicity
-      res.redirect(
-        `https://mindx-devtunglam.52.234.236.158.nip.io/login/callback?token=${id_token}&username=${decoded.email}`
-      );
+      const frontendRedirect = `http://localhost:3000/login/callback?token=${id_token}&username=${decoded.email}`;
+      console.log("Redirecting to Frontend:", frontendRedirect);
+
+      res.redirect(frontendRedirect);
     } catch (error: any) {
       console.error("Callback error:", error.response?.data || error.message);
       res.status(500).json({ message: "Authentication failed" });
