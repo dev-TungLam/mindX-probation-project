@@ -12,7 +12,6 @@ import {
 const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
 
 export class AuthController {
-  // Initiates the login flow
   public login(req: Request, res: Response) {
     const params = new URLSearchParams({
       client_id: CLIENT_ID,
@@ -24,7 +23,6 @@ export class AuthController {
     res.redirect(`${AUTH_ENDPOINT}?${params.toString()}`);
   }
 
-  // Handles the callback from IDP
   public async callback(req: Request, res: Response) {
     console.log("Received OIDC Callback. Query Params:", req.query);
     const { code } = req.query;
@@ -34,7 +32,6 @@ export class AuthController {
     }
 
     try {
-      // Exchange code for tokens
       const tokenResponse = await axios.post(
         TOKEN_ENDPOINT,
         new URLSearchParams({
@@ -53,12 +50,10 @@ export class AuthController {
 
       const { id_token, access_token } = tokenResponse.data;
 
-      // Decode token to get user info (or use userinfo endpoint)
       console.log("Token exchange successful. ID Token received.");
       const decoded: any = jwt.decode(id_token);
       console.log("Decoded User:", decoded?.email);
 
-      // Redirect back to frontend with token
       const frontendRedirect = `${FRONTEND_CALLBACK_URL}?token=${id_token}&username=${decoded.email}`;
       console.log("Redirecting to Frontend:", frontendRedirect);
 
