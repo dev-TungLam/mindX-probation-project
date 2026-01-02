@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: mindxprobationarc.azurecr.io/web:v6
+          image: mindxprobationarc.azurecr.io/web:v8
           ports:
             - containerPort: 80
           resources:
