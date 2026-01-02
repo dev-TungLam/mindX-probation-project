@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import {
+  CLIENT_ID,
+  REDIRECT_URI,
+  AUTH_ENDPOINT,
+  TOKEN_ENDPOINT,
+  FRONTEND_CALLBACK_URL,
+} from "../config";
 
-const CLIENT_ID = "mindx-onboarding";
-const CLIENT_SECRET =
-  "cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU="; // Ideally from env
-const REDIRECT_URI = "http://localhost:3000/auth/callback";
-const AUTH_ENDPOINT = "https://id-dev.mindx.edu.vn/auth";
-const TOKEN_ENDPOINT = "https://id-dev.mindx.edu.vn/token";
+const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
 
 export class AuthController {
   // Initiates the login flow
@@ -57,8 +59,7 @@ export class AuthController {
       console.log("Decoded User:", decoded?.email);
 
       // Redirect back to frontend with token
-      // In production, set a detailed cookie, but for now passing via query param for simplicity
-      const frontendRedirect = `http://localhost:3000/login/callback?token=${id_token}&username=${decoded.email}`;
+      const frontendRedirect = `${FRONTEND_CALLBACK_URL}?token=${id_token}&username=${decoded.email}`;
       console.log("Redirecting to Frontend:", frontendRedirect);
 
       res.redirect(frontendRedirect);
